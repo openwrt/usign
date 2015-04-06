@@ -57,6 +57,7 @@ static const char *pubkeyfile;
 static const char *pubkeydir;
 static const char *sigfile;
 static const char *seckeyfile;
+static const char *comment;
 static bool quiet;
 static enum {
 	CMD_NONE,
@@ -66,7 +67,7 @@ static enum {
 	CMD_GENERATE,
 } cmd = CMD_NONE;
 
-static uint64_t fingerprint_u64(uint8_t *data)
+static uint64_t fingerprint_u64(const uint8_t *data)
 {
 	uint64_t val = 0;
 
@@ -137,6 +138,22 @@ get_base64_file(const char *file, void *dest, int size, void *buf, int buflen)
 	return b64_pton(buf, dest, size) == size;
 }
 
+static void write_file(const char *name, const uint8_t *fingerprint,
+		       const char *prefix, char *buf)
+{
+	FILE *f;
+
+	f = open_file(name, false);
+	fputs("untrusted comment: ", f);
+	if (comment)
+		fputs(comment, f);
+	else
+		fprintf(f, "%s %"PRIx64, prefix,
+			fingerprint_u64(fingerprint));
+	fprintf(f, "\n%s\n", buf);
+	fclose(f);
+}
+
 static int verify(const char *msgfile)
 {
 	struct pubkey pkey;
@@ -200,7 +217,6 @@ static int sign(const char *msgfile)
 	long mlen;
 	void *m;
 	int mfd;
-	FILE *out;
 
 	if (!get_base64_file(seckeyfile, &skey, sizeof(skey), buf, sizeof(buf)) ||
 	    memcmp(skey.pkalg, "Ed", 2) != 0) {
@@ -232,9 +248,7 @@ static int sign(const char *msgfile)
 	if (b64_ntop(&sig, sizeof(sig), buf, sizeof(buf)) < 0)
 		return 1;
 
-	out = open_file(sigfile, false);
-	fprintf(out, "untrusted comment: signed by key %"PRIx64"\n%s\n", fingerprint_u64(sig.fingerprint), buf);
-	fclose(out);
+	write_file(sigfile, sig.fingerprint, "signed by key", buf);
 
 	return 0;
 }
@@ -298,9 +312,7 @@ static int generate(void)
 	if (b64_ntop(&skey, sizeof(skey), buf, sizeof(buf)) < 0)
 		return 1;
 
-	f = open_file(seckeyfile, false);
-	fprintf(f, "untrusted comment: secret key %"PRIx64"\n%s\n", fingerprint_u64(skey.fingerprint), buf);
-	fclose(f);
+	write_file(seckeyfile, skey.fingerprint, "public key", buf);
 
 	memcpy(pkey.fingerprint, skey.fingerprint, sizeof(pkey.fingerprint));
 	memcpy(pkey.pubkey, skey.seckey + 32, sizeof(pkey.pubkey));
@@ -308,9 +320,7 @@ static int generate(void)
 	if (b64_ntop(&pkey, sizeof(pkey), buf, sizeof(buf)) < 0)
 		return 1;
 
-	f = open_file(pubkeyfile, false);
-	fprintf(f, "untrusted comment: public key %"PRIx64"\n%s\n", fingerprint_u64(pkey.fingerprint), buf);
-	fclose(f);
+	write_file(pubkeyfile, pkey.fingerprint, "private key", buf);
 
 	return 0;
 }
@@ -320,17 +330,18 @@ static int usage(const char *cmd)
 	fprintf(stderr,
 		"Usage: %s <command> <options>\n"
 		"Commands:\n"
-		"  -V:		verify (needs at least -m and -p|-P)\n"
-		"  -S:		sign (needs at least -m and -s)\n"
-		"  -F:		print key fingerprint of public/secret key or signature\n"
-		"  -G:		generate a new keypair\n"
+		"  -V:			verify (needs at least -m and -p|-P)\n"
+		"  -S:			sign (needs at least -m and -s)\n"
+		"  -F:			print key fingerprint of public/secret key or signature\n"
+		"  -G:			generate a new keypair\n"
 		"Options:\n"
-		"  -m <file>:   message file\n"
-		"  -p <file>:	public key file (verify/fingerprint only)\n"
-		"  -P <path>:	public key directory (verify only)\n"
+		"  -c <comment>: 	add comment to keys\n"
+		"  -m <file>:		message file\n"
+		"  -p <file>:		public key file (verify/fingerprint only)\n"
+		"  -P <path>:		public key directory (verify only)\n"
 		"  -q:			quiet (do not print verification result, use return code only)\n"
-		"  -s <file>:	secret key file (sign/fingerprint only)\n"
-		"  -x <file>:   signature file (defaults to <message file>.sig)\n"
+		"  -s <file>:		secret key file (sign/fingerprint only)\n"
+		"  -x <file>:		signature file (defaults to <message file>.sig)\n"
 		"\n",
 		cmd);
 	return 1;
@@ -349,7 +360,7 @@ int main(int argc, char **argv)
 	const char *msgfile = NULL;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "FGSVm:P:p:qs:x:")) != -1) {
+	while ((ch = getopt(argc, argv, "FGSVc:m:P:p:qs:x:")) != -1) {
 		switch (ch) {
 		case 'V':
 			set_cmd(argv[0], CMD_VERIFY);
@@ -362,6 +373,9 @@ int main(int argc, char **argv)
 			break;
 		case 'G':
 			set_cmd(argv[0], CMD_GENERATE);
+			break;
+		case 'c':
+			comment = optarg;
 			break;
 		case 'm':
 			msgfile = optarg;
