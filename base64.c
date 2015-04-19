@@ -1,3 +1,21 @@
+/*
+ * base64 - libubox base64 functions
+ *
+ * Copyright (C) 2015 Felix Fietkau <nbd@openwrt.org>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 /*	$OpenBSD: base64.c,v 1.7 2013/12/31 02:32:56 tedu Exp $	*/
 
 /*
@@ -116,8 +134,8 @@ static const char Pad64 = '=';
 	   characters followed by one "=" padding character.
    */
 
-int b64_ntop(const void *_src, size_t srclength,
-	     void *dest, size_t targsize)
+int b64_encode(const void *_src, size_t srclength,
+	       void *dest, size_t targsize)
 {
 	const unsigned char *src = _src;
 	char *target = dest;
@@ -178,7 +196,7 @@ int b64_ntop(const void *_src, size_t srclength,
    it returns the number of data bytes stored at the target, or -1 on error.
  */
 
-int b64_pton(const void *_src, void *dest, size_t targsize)
+int b64_decode(const void *_src, void *dest, size_t targsize)
 {
 	const char *src = _src;
 	unsigned char *target = dest;
@@ -300,6 +318,10 @@ int b64_pton(const void *_src, void *dest, size_t targsize)
 		if (state != 0)
 			return (-1);
 	}
+
+	/* Null-terminate if we have room left */
+	if (tarindex < targsize)
+		target[tarindex] = 0;
 
 	return (tarindex);
 }

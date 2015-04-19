@@ -135,7 +135,7 @@ static bool
 get_base64_file(const char *file, void *dest, int size, void *buf, int buflen)
 {
 	get_file(file, buf, buflen - 1);
-	return b64_pton(buf, dest, size) == size;
+	return b64_decode(buf, dest, size) == size;
 }
 
 static void write_file(const char *name, const uint8_t *fingerprint,
@@ -245,7 +245,7 @@ static int sign(const char *msgfile)
 	munmap(m, mlen);
 	close(mfd);
 
-	if (b64_ntop(&sig, sizeof(sig), buf, sizeof(buf)) < 0)
+	if (b64_encode(&sig, sizeof(sig), buf, sizeof(buf)) < 0)
 		return 1;
 
 	write_file(sigfile, sig.fingerprint, "signed by key", buf);
@@ -309,7 +309,7 @@ static int generate(void)
 	sha512_add(&s, skey.seckey, sizeof(skey.seckey));
 	memcpy(skey.checksum, sha512_final_get(&s), sizeof(skey.checksum));
 
-	if (b64_ntop(&skey, sizeof(skey), buf, sizeof(buf)) < 0)
+	if (b64_encode(&skey, sizeof(skey), buf, sizeof(buf)) < 0)
 		return 1;
 
 	write_file(seckeyfile, skey.fingerprint, "public key", buf);
@@ -317,7 +317,7 @@ static int generate(void)
 	memcpy(pkey.fingerprint, skey.fingerprint, sizeof(pkey.fingerprint));
 	memcpy(pkey.pubkey, skey.seckey + 32, sizeof(pkey.pubkey));
 
-	if (b64_ntop(&pkey, sizeof(pkey), buf, sizeof(buf)) < 0)
+	if (b64_encode(&pkey, sizeof(pkey), buf, sizeof(buf)) < 0)
 		return 1;
 
 	write_file(pubkeyfile, pkey.fingerprint, "private key", buf);
