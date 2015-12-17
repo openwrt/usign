@@ -312,7 +312,7 @@ static int generate(void)
 	if (b64_encode(&skey, sizeof(skey), buf, sizeof(buf)) < 0)
 		return 1;
 
-	write_file(seckeyfile, skey.fingerprint, "public key", buf);
+	write_file(seckeyfile, skey.fingerprint, "private key", buf);
 
 	memcpy(pkey.fingerprint, skey.fingerprint, sizeof(pkey.fingerprint));
 	memcpy(pkey.pubkey, skey.seckey + 32, sizeof(pkey.pubkey));
@@ -320,7 +320,7 @@ static int generate(void)
 	if (b64_encode(&pkey, sizeof(pkey), buf, sizeof(buf)) < 0)
 		return 1;
 
-	write_file(pubkeyfile, pkey.fingerprint, "private key", buf);
+	write_file(pubkeyfile, pkey.fingerprint, "public key", buf);
 
 	return 0;
 }
