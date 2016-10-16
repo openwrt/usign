@@ -1,0 +1,18 @@
+Usign provides public key signatures using the ed25519 algorithm.
+
+The home page for the algorithm is http://ed25519.cr.yp.to/.
+It is described in the following paper:
+
+Daniel J. Bernstein, Niels Duif, Tanja Lange, Peter Schwabe, Bo-Yin Yang
+High-speed high-security signatures
+Journal of Cryptographic Engineering 2 (2012), 77–89
+2011-09-26
+http://ed25519.cr.yp.to/ed25519-20110926.pdf
+
+To build and install the package run
+
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
