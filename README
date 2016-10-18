@@ -9,6 +9,9 @@ Journal of Cryptographic Engineering 2 (2012), 77–89
 2011-09-26
 http://ed25519.cr.yp.to/ed25519-20110926.pdf
 
+Signatures and keys are compatible to OpenBSD's signify utility:
+http://man.openbsd.org/OpenBSD-current/man1/signify.1
+
 To build and install the package run
 
 mkdir build
