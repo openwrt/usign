@@ -232,7 +232,7 @@ void sha512_final(struct sha512_state *s, uint8_t *hash)
 		memset(&s->partial[last_size], 0,
 		       SHA512_BLOCK_SIZE - last_size);
 
-	if (last_size > 110) {
+	if (last_size > (SHA512_BLOCK_SIZE - 16)) {
 		sha512_block(s, s->partial);
 		memset(s->partial, 0, sizeof(s->partial));
 	}
