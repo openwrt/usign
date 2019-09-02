@@ -129,6 +129,7 @@ get_file(const char *filename, char *buf, int buflen)
 
 	len = fread(buf, 1, buflen - 1, f);
 	buf[len] = 0;
+	fclose(f);
 }
 
 static bool
@@ -171,6 +172,7 @@ static int verify(const char *msgfile)
 	if (!get_base64_file(sigfile, &sig, sizeof(sig), buf, sizeof(buf)) ||
 	    memcmp(sig.pkalg, "Ed", 2) != 0) {
 		fprintf(stderr, "Failed to decode signature\n");
+		fclose(f);
 		return 1;
 	}
 
@@ -183,6 +185,7 @@ static int verify(const char *msgfile)
 	if (!get_base64_file(pubkeyfile, &pkey, sizeof(pkey), buf, sizeof(buf)) ||
 	    memcmp(pkey.pkalg, "Ed", 2) != 0) {
 		fprintf(stderr, "Failed to decode public key\n");
+		fclose(f);
 		return 1;
 	}
 
@@ -292,11 +295,16 @@ static int generate(void)
 	FILE *f;
 
 	f = fopen("/dev/urandom", "r");
-	if (!f ||
-	    fread(skey.fingerprint, sizeof(skey.fingerprint), 1, f) != 1 ||
+	if (!f) {
+		fprintf(stderr, "Can't open /dev/urandom\n");
+		return 1;
+	}
+
+	if (fread(skey.fingerprint, sizeof(skey.fingerprint), 1, f) != 1 ||
 	    fread(skey.seckey, EDSIGN_SECRET_KEY_SIZE, 1, f) != 1 ||
 	    fread(skey.salt, sizeof(skey.salt), 1, f) != 1) {
 		fprintf(stderr, "Can't read data from /dev/urandom\n");
+		fclose(f);
 		return 1;
 	}
 	if (f)
