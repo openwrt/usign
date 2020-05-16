@@ -149,7 +149,7 @@ static void write_file(const char *name, const uint8_t *fingerprint,
 	if (comment)
 		fputs(comment, f);
 	else
-		fprintf(f, "%s %"PRIx64, prefix,
+		fprintf(f, "%s %016"PRIx64, prefix,
 			fingerprint_u64(fingerprint));
 	fprintf(f, "\n%s\n", buf);
 	fclose(f);
@@ -177,7 +177,7 @@ static int verify(const char *msgfile)
 	}
 
 	if (!pubkeyfile) {
-		snprintf(buf, sizeof(buf), "%s/%"PRIx64, pubkeydir,
+		snprintf(buf, sizeof(buf), "%s/%016"PRIx64, pubkeydir,
 			 fingerprint_u64(sig.fingerprint));
 		pubkeyfile = buf;
 	}
@@ -276,7 +276,7 @@ static int fingerprint(void)
 	else
 		return 1;
 
-	fprintf(stdout, "%"PRIx64"\n", fingerprint_u64(fp));
+	fprintf(stdout, "%016"PRIx64"\n", fingerprint_u64(fp));
 	return 0;
 }
 
