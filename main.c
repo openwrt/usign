@@ -340,7 +340,7 @@ static int usage(const char *cmd)
 		"Commands:\n"
 		"  -V:			verify (needs at least -m and -p|-P)\n"
 		"  -S:			sign (needs at least -m and -s)\n"
-		"  -F:			print key fingerprint of public/secret key or signature\n"
+		"  -F:			print key \"fingerprint\" (ID) of public/secret key or signature\n"
 		"  -G:			generate a new keypair (needs at least -p and -s)\n"
 		"Options:\n"
 		"  -c <comment>: 	add comment to keys\n"
